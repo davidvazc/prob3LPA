@@ -4,7 +4,6 @@
 /*Estrutura para representar as adjacencias do no*/
 typedef struct no
 {
-    int origem;
     int destino;
     int distancia;
     struct no *proximo;
@@ -24,10 +23,9 @@ typedef struct
 } grafo;
 
 /*Criar um novo no de adajcencias*/
-no *novoNo(int origem, int destino, int distancia)
+no *novoNo(int destino, int distancia)
 {
     no *novo = (no *)malloc(sizeof(no));
-    novo->origem = origem;
     novo->destino = destino;
     novo->distancia = distancia;
     novo->proximo = NULL;
@@ -51,7 +49,7 @@ grafo *criaGrafo(int vertices)
 /*Adicionar um no a um grafo não direcionado*/
 void addNo(grafo *grafo, int origem, int destino, int distancia)
 {
-    no *novo = novoNo(origem, destino, distancia);
+    no *novo = novoNo(destino, distancia);
     novo->proximo = grafo->lista[origem].head;
     grafo->lista[origem].head = novo;
 }
@@ -65,7 +63,7 @@ void printGrafo(grafo *grafo)
         no *no = grafo->lista[i].head;
         while (no)
         {
-            printf("%d --%d--> %d \t", no->origem, no->distancia, no->destino);
+            printf("%d --%d--> %d \t", i, no->distancia, no->destino);
             no = no->proximo;
         }
         printf("\n");
@@ -142,6 +140,52 @@ int dijkstra(grafo *grafo, int s, int t)
     return d[t];
 }
 
+/*Floyd-warshall*/
+void FW(grafo *grafo, int **D)
+{
+    int i, k, j;
+    for (i = 1; i <= grafo->vertices; i++)
+    {
+        for (j = 1; j <= grafo->vertices; j++)
+        {
+            //            printf("i: %d, j:%d\n",i,j);
+            if (i == j)
+            {
+                D[i][j] = 0;
+            }
+            else
+            {
+                D[i][j] = 100000;
+            }
+        }
+    }
+    for (i = 1; i <= grafo->vertices; i++)
+    {
+        no *no = grafo->lista[i].head;
+        while (no)
+        {
+            //            printf("i: %d, no->destino: %d, no->distancia: %d\n",i,no->destino,no->distancia);
+            D[i][no->destino] = no->distancia;
+            no = no->proximo;
+        }
+        free(no);
+    }
+    for (k = 1; k <= grafo->vertices; k++)
+    {
+        for (i = 1; i <= grafo->vertices; i++)
+        {
+            for (j = 1; j <= grafo->vertices; j++)
+            {
+                if (D[i][j] > D[i][k] + D[k][j])
+                {
+                    //                    printf("[%d][%D]: %d, [%d][%D]: %d, [%d][%D]: %d\n",i,j,D[i][j],i,k,D[i][k],k,j,D[k][j]);
+                    D[i][j] = D[i][k] + D[k][j];
+                }
+            }
+        }
+    }
+}
+
 /*auxiliar de AP onde corro recursivamente*/
 void APrecursiva(grafo *grafo, int idNo, int *dfs, int *pai, int *low, int *ap, int time)
 {
@@ -170,13 +214,13 @@ void APrecursiva(grafo *grafo, int idNo, int *dfs, int *pai, int *low, int *ap, 
 }
 
 /*Verificar se os nos sao servidores*/
-void AP(grafo *grafo)
+void AP(grafo *grafo, int **D)
 {
     int *low = (int *)malloc(sizeof(int) * grafo->vertices);
     int *pai = (int *)malloc(sizeof(int) * grafo->vertices);
     int *dfs = (int *)malloc(sizeof(int) * grafo->vertices);
     int *ap = (int *)malloc(sizeof(int) * grafo->vertices);
-    int i, flag = 0;
+    int i, j, resp1 = 0, resp2 = 0, resp3 = 0;
     for (i = 1; i <= grafo->vertices; i++)
     {
         pai[i] = -1;
@@ -194,13 +238,36 @@ void AP(grafo *grafo)
     {
         if (ap[i] == 1)
         {
-            flag = 1;
-            printf("AP: %d\n", i);
+            resp1++;
         }
     }
-    if (flag == 0)
+
+    for (i = 1; i <= grafo->vertices; i++)
     {
-        printf("\nno server\n");
+        if (ap[i] == 1)
+        {
+            for (j = i + 1; j <= grafo->vertices; j++)
+            {
+                if (ap[j] == 1)
+                {
+                    //                    printf("do %d ao %d da: %d\n",i,j,D[i][j]);
+                    resp2 = resp2 + D[i][j];
+                }
+            }
+        }
+    }
+
+    if (resp1 == 0)
+    {
+        printf("no server\n");
+    }
+    else if (resp1 == 1)
+    {
+        printf("1 0 0\n");
+    }
+    else
+    {
+        printf("%d %d %d\n", resp1, resp2, resp3);
     }
     free(low);
     free(pai);
@@ -211,8 +278,9 @@ void AP(grafo *grafo)
 /*ler dados e chamar a funcao*/
 int main(int argc, const char *argv[])
 {
-    int n, destino, distancia;
+    int n, destino, distancia, i;
     grafo *grafo = NULL;
+    int **D;
     while (scanf("%d", &n) != EOF)
     {
         grafo = criaGrafo(n);
@@ -226,11 +294,18 @@ int main(int argc, const char *argv[])
                 addNo(grafo, destino, n, distancia);
             }
         }
-        printf("\n\n");
-        printGrafo(grafo);
-        printf("\n");
-        AP(grafo);
-        //        dijkstra(grafo, 1, 3);
+
+        D = (int **)malloc((1 + grafo->vertices) * sizeof(int *));
+        for (i = 0; i <= grafo->vertices; i++)
+            D[i] = (int *)malloc((1 + grafo->vertices) * sizeof(int));
+        FW(grafo, D);
+
+        //        printf("\n\n");
+        //        printGrafo(grafo);
+        //        printf("\n");
+        AP(grafo, D);
+
+        free(D);
     }
     free(grafo);
     return 0;
