@@ -179,13 +179,16 @@ int DFS(grafo* g, int ap[]){
     return resp;
 }
 
+
 /*Floyd-warshall*/
 int FW(grafo* grafo,int ap[], int servers){
-    int i,k,j,resp2=0,primeiro=0,ultimo=0;
+    int i,k,j,resp2=0;
     no* no = NULL;
+    int visitado[grafo->vertices+1];
+    
     for (i=1; i<=grafo->vertices; i++) {
+        visitado[i]=0;
         for (j=1; j<=grafo->vertices; j++) {
-            //            printf("i: %d, j:%d\n",i,j);
             if(i==j){
                 D[i][j]=0;
             }
@@ -197,7 +200,6 @@ int FW(grafo* grafo,int ap[], int servers){
     for (i=1; i<=grafo->vertices; i++) {
         no = grafo->lista[i].head;
         while (no) {
-            //            printf("i: %d, no->destino: %d, no->distancia: %d\n",i,no->destino,no->distancia);
             D[i][no->destino]=no->distancia;
             no = no->proximo;
         }
@@ -205,41 +207,25 @@ int FW(grafo* grafo,int ap[], int servers){
     }
     for (k=1; k<=grafo->vertices; k++) {
         for (i=1; i<=grafo->vertices; i++) {
+            visitado[i]=0;
+        }
+        for (i=1; i<=grafo->vertices; i++) {
             for (j=1; j<=grafo->vertices; j++) {
                 if (D[i][j] > D[i][k] + D[k][j]){
-                    //                    printf("[%d][%D]: %d, [%d][%D]: %d, [%d][%D]: %d\n",i,j,D[i][j],i,k,D[i][k],k,j,D[k][j]);
                     D[i][j] = D[i][k] + D[k][j];
+//                    printf("k:%d i:%d j:%d da: %d\n",k,i,j,D[i][j]);
+                }
+                if(k==grafo->vertices && ap[i]==1 && ap[j]==1 && visitado[i]==0 && D[i][j]<SHRT_MAX){
+                    resp2+=D[i][j];
+                    visitado[j]=1;
+//                    printf("k:%d i:%d j:%d da: %d\n",k,i,j,D[i][j]);
                 }
             }
         }
     }
-    for (i=1; i<=grafo->vertices; i++) {
-        if(ap[i]==1){
-            if(ultimo<i)
-                ultimo=i;
-            for (j=i+1; j<=grafo->vertices; j++) {
-                if(ap[j]==1){
-                    /*                    printf("0: do %d ao %d da: %d\n",i,j,D[i][j]);*/
-                    if(D[i][j]<1000){
-                        /*                        printf("1: do %d ao %d da: %d\n",i,j,D[i][j]);*/
-                        resp2=resp2+D[i][j];
-                        if(primeiro==0){
-                            primeiro=i;
-                        }
-                    } else{
-                        /*                        printf("2: do %d ao %d da: %d, %d\n",i,j,D[i][j],SHRT_MAX);*/
-                        resp2=resp2+D[primeiro][ultimo];
-                        primeiro=0;
-                    }
-                    break;
-                }
-            }
-        }
-    }
-    if(D[primeiro][ultimo]<SHRT_MAX && servers!=2){
-        resp2=resp2+D[primeiro][ultimo];
-        /*        printf("3: do %d ao %d da: %d\n",primeiro,ultimo,D[primeiro][ultimo]);*/
-    }
+    
+
+    
     return resp2;
 }
 
