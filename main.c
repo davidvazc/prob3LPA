@@ -213,18 +213,18 @@ int FW(grafo* grafo,int ap[], int servers){
             for (j=1; j<=grafo->vertices; j++) {
                 if (D[i][j] > D[i][k] + D[k][j]){
                     D[i][j] = D[i][k] + D[k][j];
-//                    printf("k:%d i:%d j:%d da: %d\n",k,i,j,D[i][j]);
+                    //                    printf("k:%d i:%d j:%d da: %d\n",k,i,j,D[i][j]);
                 }
                 if(k==grafo->vertices && ap[i]==1 && ap[j]==1 && visitado[i]==0 && D[i][j]<SHRT_MAX){
                     resp2+=D[i][j];
                     visitado[j]=1;
-//                    printf("k:%d i:%d j:%d da: %d\n",k,i,j,D[i][j]);
+                    //                    printf("k:%d i:%d j:%d da: %d\n",k,i,j,D[i][j]);
                 }
             }
         }
     }
     
-
+    
     
     return resp2;
 }
@@ -270,7 +270,7 @@ grafo* Kruskal(grafo* graf){
         noAux = graf->lista[v].head;
         while (noAux) {
             /*            printf("adicionou %d--%d-->%d\n",v,noAux->distancia,noAux->destino);
-                        printf("adicionou %d--%d-->%d\n",origem,destino,distancia);*/
+             printf("adicionou %d--%d-->%d\n",origem,destino,distancia);*/
             novo = novoNo(noAux->origem,noAux->destino, noAux->distancia);
             temp->proximo =novo;
             temp = temp->proximo;
@@ -358,8 +358,8 @@ void APGeral(grafo* g, grafo* Gkrus){
         resp3=DFS(gAux,ap);
         printf("%d %d %d\n",servidores,resp2,resp3);
         /*printf("\nkruskall:\n");
-        printGrafo(gAux);
-        printf("\nresultado kruskal: %d\n",resp3);*/
+         printGrafo(gAux);
+         printf("\nresultado kruskal: %d\n",resp3);*/
     }
     free(gAux);
 }
@@ -390,8 +390,8 @@ int main(int argc, const char * argv[]) {
             }
         }
         /*        printf("\n\n");
-                printGrafo(g);
-               printf("\n");*/
+         printGrafo(g);
+         printf("\n");*/
         APGeral(g, gkrus);
         
         
